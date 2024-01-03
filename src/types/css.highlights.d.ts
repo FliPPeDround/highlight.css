@@ -1,10 +1,1 @@
-declare global {
-  interface CSS {
-    highlights: highlights
-  }
-}
-
-interface highlights {
-  set: () => void
-  get: () => void
-}
+declare module 'highlight.css' {}

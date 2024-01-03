@@ -10,8 +10,5 @@
     "esModuleInterop": true,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
-  },
-  "files": [
-    "src/types/css.highlights.d.ts"
-  ]
+  }
 }

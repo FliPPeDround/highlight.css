@@ -76,6 +76,9 @@ export default class HighlightCSS {
 
   // Render the highlights based on the highlight ranges
   private renderHighlight() {
+    // eslint-disable-next-line ts/ban-ts-comment
+    // @ts-expect-error
+    CSS.highlights.clear()
     for (const [color, ranges] of this.highlightRanges) {
       const highlightName = this.transformColor(color)
       this.highlightsCSSContent += `
