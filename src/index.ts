@@ -1,8 +1,8 @@
 import { codeToThemedTokens } from 'shikiji'
 
-type shikijitOptions = Parameters<typeof codeToThemedTokens>[1]
+type ShikijitOptions = Parameters<typeof codeToThemedTokens>[1]
 
-interface HighlightOptions extends shikijitOptions {
+interface HighlightOptions extends ShikijitOptions {
 }
 
 export default class HighlightCSS {
@@ -14,23 +14,26 @@ export default class HighlightCSS {
     private readonly el: HTMLElement,
     private readonly options: HighlightOptions,
   ) {
-    this.checkHighlitCSS()
+    this.validateCSSHighlights()
   }
 
-  setContext() {
+  // Set the context based on the element's text content
+  private setContext() {
     const context = this.el.textContent
     if (!context)
       throw new Error('No context')
     this.context = context
   }
 
-  checkHighlitCSS() {
+  // Check if CSS highlights are available
+  private validateCSSHighlights() {
     // eslint-disable-next-line ts/ban-ts-comment
     // @ts-expect-error
     if (!CSS.highlights)
       throw new Error('No highlights')
   }
 
+  // Render the highlights
   async render() {
     this.setContext()
     await this.setHighlightRanges()
@@ -38,7 +41,8 @@ export default class HighlightCSS {
     this.mountStyle()
   }
 
-  async setHighlightRanges() {
+  // Set the highlight ranges based on the tokens
+  private async setHighlightRanges() {
     const tokens = await codeToThemedTokens(this.context, this.options)
     let startPos = 0
     const nodes = this.el.firstChild!
@@ -50,7 +54,7 @@ export default class HighlightCSS {
         const range = new Range()
         range.setStart(nodes, index)
         range.setEnd(nodes, startPos)
-        // 如果是相同的color, 将range push到highlightRanges中
+        // If the color is the same, push the range to highlightRanges
         if (this.highlightRanges.has(color!))
           this.highlightRanges.get(color!)!.push(range)
 
@@ -60,7 +64,8 @@ export default class HighlightCSS {
     })
   }
 
-  renderHighlight() {
+  // Render the highlights based on the highlight ranges
+  private renderHighlight() {
     for (const [color, ranges] of this.highlightRanges) {
       // eslint-disable-next-line ts/ban-ts-comment
       // @ts-expect-error
@@ -76,8 +81,8 @@ export default class HighlightCSS {
     }
   }
 
-  // 遍历highlightRanges的key,将key里的16位色值映射为对应的英文字母
-  transformColor(color: string) {
+  // Transform the color value to a corresponding string
+  private transformColor(color: string) {
     const wordLits = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
     const colorHex = color.replace('#', '')
     const colorRGB = String(Number.parseInt(colorHex, 16))
@@ -89,7 +94,8 @@ export default class HighlightCSS {
     return result
   }
 
-  mountStyle() {
+  // Mount the style element to the document head
+  private mountStyle() {
     const styleEl = document.createElement('style')
     styleEl.textContent = this.highlightsCSSContent
     document.head.appendChild(styleEl)
