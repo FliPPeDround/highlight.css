@@ -36,6 +36,7 @@ export default class HighlightCSS {
   // Render the highlights
   async render() {
     this.setContext()
+    this.clearData()
     await this.setHighlightRanges()
     this.renderHighlight()
     this.mountStyle()
@@ -96,8 +97,14 @@ export default class HighlightCSS {
 
   // Mount the style element to the document head
   private mountStyle() {
-    const styleEl = document.createElement('style')
+    const styleEl = document.getElementById('var-highlight-css') ?? document.createElement('style')
+    styleEl.id = 'var-highlight-css'
     styleEl.textContent = this.highlightsCSSContent
     document.head.appendChild(styleEl)
+  }
+
+  private clearData() {
+    this.highlightRanges.clear()
+    this.highlightsCSSContent = ''
   }
 }
