@@ -1,10 +1,10 @@
 import HighlightCSS from 'highlight.css'
 
 const hlcss = new HighlightCSS(
-  document.getElementById('code')?.firstChild,
+  document.getElementById('code'),
   {
     lang: 'js',
-    theme: 'min-dark',
+    theme: 'vitesse-black',
   },
 )
-await hlcss.init()
+await hlcss.render()
