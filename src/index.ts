@@ -9,6 +9,8 @@ export default class HighlightCSS {
   private context: string = ''
   private highlightRanges: Map<string, Range[]> = new Map()
   private highlightsCSSContent: string = ''
+  private styleEl: HTMLStyleElement | null = null
+  private colorTransformCache: Record<string, string> = {}
 
   constructor(
     private readonly el: HTMLElement,
@@ -45,62 +47,82 @@ export default class HighlightCSS {
   // Set the highlight ranges based on the tokens
   private async setHighlightRanges() {
     const tokens = await codeToThemedTokens(this.context, this.options)
-    let startPos = 0
-    const nodes = this.el.firstChild!
-    tokens.forEach((token) => {
-      token.forEach((item) => {
-        const { content, color } = item
-        const index = this.context.indexOf(content, startPos)
-        startPos = index + content.length
+    let startPos = -1
+    const nodes = this.el.firstChild
+    if (!nodes)
+      throw new Error('The first child of the element is not available.')
+
+    for (let i = 0; i < tokens.length; i++) {
+      startPos += 1
+      for (let j = 0; j < tokens[i].length; j++) {
+        const token = tokens[i][j]
+        const { content, color } = token
+        const index = startPos
+        startPos += content.length
+        if (!content.trim())
+          continue
         const range = new Range()
         range.setStart(nodes, index)
         range.setEnd(nodes, startPos)
-        // If the color is the same, push the range to highlightRanges
-        if (this.highlightRanges.has(color!))
-          this.highlightRanges.get(color!)!.push(range)
+        const ranges = this.highlightRanges.get(color!)
+        if (ranges)
+          ranges.push(range)
 
         else
           this.highlightRanges.set(color!, [range])
-      })
-    })
+      }
+    }
   }
 
   // Render the highlights based on the highlight ranges
   private renderHighlight() {
     for (const [color, ranges] of this.highlightRanges) {
-      // eslint-disable-next-line ts/ban-ts-comment
-      // @ts-expect-error
-      const highlight = new Highlight(...ranges)
       const highlightName = this.transformColor(color)
-      // eslint-disable-next-line ts/ban-ts-comment
-      // @ts-expect-error
-      CSS.highlights.set(highlightName, highlight)
       this.highlightsCSSContent += `
       ::highlight(${highlightName}) {
         color: ${color};
       }`
+      // eslint-disable-next-line ts/ban-ts-comment
+      // @ts-expect-error
+      const highlight = new Highlight(...ranges)
+      // eslint-disable-next-line ts/ban-ts-comment
+      // @ts-expect-error
+      CSS.highlights.set(highlightName, highlight)
     }
   }
 
   // Transform the color value to a corresponding string
   private transformColor(color: string) {
-    const wordLits = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+    if (this.colorTransformCache[color])
+      return this.colorTransformCache[color]
+
+    const wordLits = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
     const colorHex = color.replace('#', '')
-    const colorRGB = String(Number.parseInt(colorHex, 16))
+    const colorRGB = Number.parseInt(colorHex, 16).toString()
     let result = ''
 
     for (const char of colorRGB)
       result += wordLits[Number(char)]
 
+    this.colorTransformCache[color] = result
     return result
   }
 
   // Mount the style element to the document head
   private mountStyle() {
-    const styleEl = document.getElementById('var-highlight-css') ?? document.createElement('style')
-    styleEl.id = 'var-highlight-css'
-    styleEl.textContent = this.highlightsCSSContent
+    if (!this.styleEl) {
+      this.styleEl = <HTMLStyleElement>document.getElementById('var--highlight-css__code')
+        || this.createStyleElement()
+    }
+    if (this.highlightsCSSContent !== this.styleEl.textContent)
+      this.styleEl.textContent = this.highlightsCSSContent
+  }
+
+  private createStyleElement(): HTMLStyleElement {
+    const styleEl = document.createElement('style')
+    styleEl.id = 'var--highlight-css__code'
     document.head.appendChild(styleEl)
+    return styleEl
   }
 
   private clearData() {
