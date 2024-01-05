@@ -1,4 +1,5 @@
-import { codeToThemedTokens } from 'shikiji'
+import type { BundledTheme } from 'shikiji'
+import { bundledThemes, codeToThemedTokens } from 'shikiji'
 
 type ShikijitOptions = Parameters<typeof codeToThemedTokens>[1]
 
@@ -40,13 +41,15 @@ export default class HighlightCSS {
     this.setContext()
     this.clearData()
     await this.setHighlightRanges()
-    this.renderHighlight()
+    await this.setElStyle()
     this.mountStyle()
+    this.renderHighlight()
   }
 
   // Set the highlight ranges based on the tokens
   private async setHighlightRanges() {
     const tokens = await codeToThemedTokens(this.context, this.options)
+
     let startPos = -1
     const nodes = this.el.firstChild
     if (!nodes)
@@ -65,11 +68,17 @@ export default class HighlightCSS {
         range.setStart(nodes, index)
         range.setEnd(nodes, startPos)
         const ranges = this.highlightRanges.get(color!)
-        if (ranges)
+        if (ranges) {
           ranges.push(range)
-
-        else
+        }
+        else {
           this.highlightRanges.set(color!, [range])
+          const highlightName = this.transformColor(color!)
+          this.highlightsCSSContent += `
+          ::highlight(${highlightName}) {
+            color: ${color};
+          }`
+        }
       }
     }
   }
@@ -81,10 +90,6 @@ export default class HighlightCSS {
     CSS.highlights.clear()
     for (const [color, ranges] of this.highlightRanges) {
       const highlightName = this.transformColor(color)
-      this.highlightsCSSContent += `
-      ::highlight(${highlightName}) {
-        color: ${color};
-      }`
       // eslint-disable-next-line ts/ban-ts-comment
       // @ts-expect-error
       const highlight = new Highlight(...ranges)
@@ -126,6 +131,13 @@ export default class HighlightCSS {
     styleEl.id = 'var--highlight-css__code'
     document.head.appendChild(styleEl)
     return styleEl
+  }
+
+  private async setElStyle() {
+    const theme = this.options.theme
+    const { background, foreground } = (await bundledThemes[<BundledTheme>theme]()).default.tokenColors![0].settings
+    this.el.style.setProperty('background-color', background!)
+    this.el.style.setProperty('color', foreground!)
   }
 
   private clearData() {
