@@ -11,7 +11,6 @@ export default class HighlightCSS {
   private highlightRanges: Map<string, Range[]> = new Map()
   private highlightsCSSContent: string = ''
   private styleEl: HTMLStyleElement | null = null
-  private colorTransformCache: Record<string, string> = {}
 
   constructor(
     private readonly el: HTMLElement,
@@ -73,9 +72,8 @@ export default class HighlightCSS {
         }
         else {
           this.highlightRanges.set(color!, [range])
-          const highlightName = this.transformColor(color!)
           this.highlightsCSSContent += `
-          ::highlight(${highlightName}) {
+          ::highlight(c-${color!.substring(1)}) {
             color: ${color};
           }`
         }
@@ -89,31 +87,13 @@ export default class HighlightCSS {
     // @ts-expect-error
     CSS.highlights.clear()
     for (const [color, ranges] of this.highlightRanges) {
-      const highlightName = this.transformColor(color)
       // eslint-disable-next-line ts/ban-ts-comment
       // @ts-expect-error
       const highlight = new Highlight(...ranges)
       // eslint-disable-next-line ts/ban-ts-comment
       // @ts-expect-error
-      CSS.highlights.set(highlightName, highlight)
+      CSS.highlights.set(`c-${color.substring(1)}`, highlight)
     }
-  }
-
-  // Transform the color value to a corresponding string
-  private transformColor(color: string) {
-    if (this.colorTransformCache[color])
-      return this.colorTransformCache[color]
-
-    const wordLits = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    const colorHex = color.replace('#', '')
-    const colorRGB = Number.parseInt(colorHex, 16).toString()
-    let result = ''
-
-    for (const char of colorRGB)
-      result += wordLits[Number(char)]
-
-    this.colorTransformCache[color] = result
-    return result
   }
 
   // Mount the style element to the document head
