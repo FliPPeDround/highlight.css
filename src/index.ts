@@ -41,7 +41,7 @@ export default class HighlightCSS {
     this.setContext()
     this.clearData()
     await this.setHighlightRanges()
-    await this.setElStyle()
+    this.setElStyle()
     this.mountStyle()
     this.renderHighlight()
   }
@@ -133,11 +133,13 @@ export default class HighlightCSS {
     return styleEl
   }
 
-  private async setElStyle() {
+  private setElStyle() {
     const theme = this.options.theme
-    const { background, foreground } = (await bundledThemes[<BundledTheme>theme]()).default.tokenColors![0].settings
-    this.el.style.setProperty('background-color', background!)
-    this.el.style.setProperty('color', foreground!)
+    bundledThemes[<BundledTheme>theme]().then((theme) => {
+      const { background, foreground } = theme.default.tokenColors![0].settings
+      this.el.style.setProperty('background-color', background!)
+      this.el.style.setProperty('color', foreground!)
+    })
   }
 
   private clearData() {
