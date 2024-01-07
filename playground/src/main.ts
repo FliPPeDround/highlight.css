@@ -6,7 +6,7 @@ const hlcss = new HighlightCSS(
   {
     lang: 'js',
     theme: 'vitesse-dark',
-    editor: true,
+    editable: true,
   },
 )
 

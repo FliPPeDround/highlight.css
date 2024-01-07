@@ -4,7 +4,7 @@ import { bundledThemes, codeToThemedTokens } from 'shikiji'
 type ShikijitOptions = Parameters<typeof codeToThemedTokens>[1]
 
 interface HighlightOptions extends ShikijitOptions {
-  editor?: boolean
+  editable?: boolean
 }
 
 export default class HighlightCSS {
@@ -20,7 +20,7 @@ export default class HighlightCSS {
     private readonly options: HighlightOptions,
   ) {
     this.validateCSSHighlights()
-    if (this.options.editor)
+    if (this.options.editable)
       this.domEditable()
   }
 
@@ -33,8 +33,11 @@ export default class HighlightCSS {
   }
 
   private domEditable() {
-    this.el.contentEditable = 'true'
-    this.el.addEventListener('input', async () => await this.render())
+    this.el.style.setProperty('-webkit-user-modify', 'read-write-plaintext-only')
+    this.el.addEventListener('input', async () => {
+      this.el.normalize()
+      await this.render()
+    })
   }
 
   // Check if CSS highlights are available
