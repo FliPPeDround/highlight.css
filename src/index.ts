@@ -4,6 +4,7 @@ import { bundledThemes, codeToThemedTokens } from 'shikiji'
 type ShikijitOptions = Parameters<typeof codeToThemedTokens>[1]
 
 interface HighlightOptions extends ShikijitOptions {
+  editor?: boolean
 }
 
 export default class HighlightCSS {
@@ -12,11 +13,15 @@ export default class HighlightCSS {
   private highlightsCSSContent: string = ''
   private styleEl: HTMLStyleElement | null = null
 
+  public loading = true
+
   constructor(
     private readonly el: HTMLElement,
     private readonly options: HighlightOptions,
   ) {
     this.validateCSSHighlights()
+    if (this.options.editor)
+      this.domEditable()
   }
 
   // Set the context based on the element's text content
@@ -25,6 +30,11 @@ export default class HighlightCSS {
     if (!context)
       throw new Error('No context')
     this.context = context
+  }
+
+  private domEditable() {
+    this.el.contentEditable = 'true'
+    this.el.addEventListener('input', async () => await this.render())
   }
 
   // Check if CSS highlights are available
@@ -37,12 +47,14 @@ export default class HighlightCSS {
 
   // Render the highlights
   async render() {
+    this.loading = true
     this.setContext()
     this.clearData()
     await this.setHighlightRanges()
     this.setElStyle()
     this.mountStyle()
     this.renderHighlight()
+    this.loading = false
   }
 
   // Set the highlight ranges based on the tokens

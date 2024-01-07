@@ -6,8 +6,8 @@ const hlcss = new HighlightCSS(
   {
     lang: 'js',
     theme: 'vitesse-dark',
+    editor: true,
   },
 )
-await hlcss.render()
 
-codeEl?.addEventListener('click', async () => await hlcss.render())
+await hlcss.render()
