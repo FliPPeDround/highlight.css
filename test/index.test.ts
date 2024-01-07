@@ -97,19 +97,4 @@ describe('should', () => {
       ]
     `)
   })
-  it('将key里的16位色值映射为对应的英文字母', () => {
-    const color = '#FFFFFF'
-    const wordLIst = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
-    function getColor(color: string) {
-      const colorHex = color.replace('#', '')
-      const colorRGB = String(Number.parseInt(colorHex, 16))
-      let result = ''
-
-      for (const char of colorRGB)
-        result += wordLIst[char]
-
-      return result
-    }
-    expect(getColor(color)).toMatchInlineSnapshot(`"bghhhcbf"`)
-  })
 })
