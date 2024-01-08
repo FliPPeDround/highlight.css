@@ -13,7 +13,7 @@ export default class HighlightCSS {
   private highlightsCSSContent: string = ''
   private styleEl: HTMLStyleElement | null = null
 
-  public loading = true
+  public onRender?: () => void
 
   constructor(
     private readonly el: HTMLElement,
@@ -34,10 +34,30 @@ export default class HighlightCSS {
 
   private domEditable() {
     this.el.style.setProperty('-webkit-user-modify', 'read-write-plaintext-only')
-    this.el.addEventListener('input', async () => {
-      this.el.normalize()
-      await this.render()
-    })
+    this.el.addEventListener('input', this.handleInput)
+    this.el.addEventListener('keydown', this.handleTab)
+  }
+
+  private handleInput = async () => {
+    this.el.normalize()
+    await this.render()
+  }
+
+  private handleTab = (event: KeyboardEvent) => {
+    if (event.key === 'Tab') {
+      event.preventDefault()
+      const selection = window.getSelection()
+      if (!selection)
+        return
+
+      const range = selection.getRangeAt(0)
+      const textNode = document.createTextNode('  ')
+      range.insertNode(textNode)
+      range.setStartAfter(textNode)
+      range.setEndAfter(textNode)
+      selection.removeAllRanges()
+      selection.addRange(range)
+    }
   }
 
   // Check if CSS highlights are available
@@ -49,15 +69,36 @@ export default class HighlightCSS {
   }
 
   // Render the highlights
-  async render() {
-    this.loading = true
+  public async render() {
     this.setContext()
     this.clearData()
     await this.setHighlightRanges()
     this.setElStyle()
     this.mountStyle()
     this.renderHighlight()
-    this.loading = false
+    this.onRender?.()
+  }
+
+  public destroy() {
+    this.clearData()
+    this.context = ''
+    // eslint-disable-next-line ts/ban-ts-comment
+    // @ts-expect-error
+    CSS.highlights.clear()
+
+    if (this.options.editable) {
+      this.el.removeEventListener('input', this.handleInput)
+      this.el.removeEventListener('keydown', this.handleTab)
+      this.el.style.removeProperty('-webkit-user-modify')
+    }
+
+    if (this.styleEl) {
+      document.head.removeChild(this.styleEl)
+      this.styleEl = null
+    }
+
+    this.el.style.removeProperty('background-color')
+    this.el.style.removeProperty('color')
   }
 
   // Set the highlight ranges based on the tokens
@@ -114,18 +155,12 @@ export default class HighlightCSS {
   // Mount the style element to the document head
   private mountStyle() {
     if (!this.styleEl) {
-      this.styleEl = <HTMLStyleElement>document.getElementById('var--highlight-css__code')
-        || this.createStyleElement()
+      this.styleEl = document.createElement('style')
+      document.head.appendChild(this.styleEl)
     }
+
     if (this.highlightsCSSContent !== this.styleEl.textContent)
       this.styleEl.textContent = this.highlightsCSSContent
-  }
-
-  private createStyleElement(): HTMLStyleElement {
-    const styleEl = document.createElement('style')
-    styleEl.id = 'var--highlight-css__code'
-    document.head.appendChild(styleEl)
-    return styleEl
   }
 
   private setElStyle() {
@@ -134,6 +169,7 @@ export default class HighlightCSS {
       const { background, foreground } = theme.default.tokenColors![0].settings
       this.el.style.setProperty('background-color', background!)
       this.el.style.setProperty('color', foreground!)
+      this.el.style.setProperty('caret-color', foreground!)
     })
   }
 
