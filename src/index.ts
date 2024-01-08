@@ -1,6 +1,8 @@
 import type { BundledTheme } from 'shikiji'
 import { bundledThemes, codeToThemedTokens } from 'shikiji'
 
+import { handleTab } from './eventHandlers.ts'
+
 type ShikijitOptions = Parameters<typeof codeToThemedTokens>[1]
 
 interface HighlightOptions extends ShikijitOptions {
@@ -35,29 +37,12 @@ export default class HighlightCSS {
   private domEditable() {
     this.el.style.setProperty('-webkit-user-modify', 'read-write-plaintext-only')
     this.el.addEventListener('input', this.handleInput)
-    this.el.addEventListener('keydown', this.handleTab)
+    this.el.addEventListener('keydown', handleTab)
   }
 
   private handleInput = async () => {
     this.el.normalize()
     await this.render()
-  }
-
-  private handleTab = (event: KeyboardEvent) => {
-    if (event.key === 'Tab') {
-      event.preventDefault()
-      const selection = window.getSelection()
-      if (!selection)
-        return
-
-      const range = selection.getRangeAt(0)
-      const textNode = document.createTextNode('  ')
-      range.insertNode(textNode)
-      range.setStartAfter(textNode)
-      range.setEndAfter(textNode)
-      selection.removeAllRanges()
-      selection.addRange(range)
-    }
   }
 
   // Check if CSS highlights are available
@@ -88,7 +73,7 @@ export default class HighlightCSS {
 
     if (this.options.editable) {
       this.el.removeEventListener('input', this.handleInput)
-      this.el.removeEventListener('keydown', this.handleTab)
+      this.el.removeEventListener('keydown', handleTab)
       this.el.style.removeProperty('-webkit-user-modify')
     }
 

@@ -5,13 +5,13 @@ const hlcss = new HighlightCSS(
   codeEl,
   {
     lang: 'js',
-    theme: 'vitesse-light',
+    theme: 'vitesse-black',
     editable: true,
   },
 )
 
 await hlcss.render()
 
-// setTimeout(() => {
-//   hlcss.destroy()
-// }, 5000)
+setTimeout(() => {
+  hlcss.destroy()
+}, 5000)
