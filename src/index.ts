@@ -7,10 +7,11 @@ type ShikijitOptions = Parameters<typeof codeToThemedTokens>[1]
 
 interface HighlightOptions extends ShikijitOptions {
   editable?: boolean
+  showLineNumbers?: boolean
 }
 
 export default class HighlightCSS {
-  private context: string = ''
+  public context: string = ''
   private highlightRanges: Map<string, Range[]> = new Map()
   private highlightsCSSContent: string = ''
   private styleEl: HTMLStyleElement | null = null
@@ -89,7 +90,6 @@ export default class HighlightCSS {
   // Set the highlight ranges based on the tokens
   private async setHighlightRanges() {
     const tokens = await codeToThemedTokens(this.context, this.options)
-
     let startPos = -1
     const nodes = this.el.firstChild
     if (!nodes)

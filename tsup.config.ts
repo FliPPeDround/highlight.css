@@ -13,7 +13,7 @@ export default defineConfig ((options) => {
     external: ['shikiji'],
     dts: true,
     publicDir: './src/types',
-    minify: !options.watch,
+    minify: true,
     onSuccess: async () => {
       // eslint-disable-next-line no-console
       console.log(buildBanner)

@@ -7,11 +7,12 @@ const hlcss = new HighlightCSS(
     lang: 'js',
     theme: 'vitesse-black',
     editable: true,
+    showLineNumbers: true,
   },
 )
 
 await hlcss.render()
 
-setTimeout(() => {
-  hlcss.destroy()
-}, 5000)
+// setTimeout(() => {
+//   hlcss.destroy()
+// }, 5000)
